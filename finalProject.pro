@@ -1,4 +1,4 @@
-QT       += core gui
+QT += core gui
 QT += widgets
 
 
@@ -11,6 +11,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    chatmenu.cpp \
     confirm.cpp \
     login.cpp \
     main.cpp \
@@ -18,12 +19,14 @@ SOURCES += \
     signin.cpp
 
 HEADERS += \
+    chatmenu.h \
     confirm.h \
     login.h \
     mainwindow.h \
     signin.h
 
 FORMS += \
+    chatmenu.ui \
     confirm.ui \
     login.ui \
     mainwindow.ui \

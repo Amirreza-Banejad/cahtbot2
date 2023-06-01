@@ -1,6 +1,8 @@
 #include "confirm.h"
 #include "ui_confirm.h"
 #include <QMessageBox>
+#include <QFile>
+#include <QDebug>
 int r;
 confirm::confirm(QWidget *parent) :
     QMainWindow(parent),
@@ -34,10 +36,25 @@ void confirm::on_GO_clicked()
     {
         QMessageBox ::information (this," Welcome!","hello !");
 
+        QFile *userFile = new QFile("D:/Uinversity/chatbot2/finalProject/user.txt");
+
+
+
+        if(!userFile->open(QFile::WriteOnly |
+                                 QFile::Text))
+        {
+            qDebug()<<"not succes";
+        }
+        else {
+
+        }
+        userFile->close();
+
     }
     else
     {
         QMessageBox ::information (this,"wrong","try again!");
     }
+
 }
 

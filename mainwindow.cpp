@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 #include <QCheckBox>
 #include "login.h"
+#include "chatmenu.h"
+#include <QFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->nextBtn->setEnabled(false);
     ui->nextBtnEn->setEnabled(false);
+
+
 }
 
 MainWindow::~MainWindow()
@@ -83,6 +87,7 @@ void MainWindow::on_rollsCheck_clicked(bool checked)
 
 void MainWindow::on_nextBtn_clicked()
 {
+
     login *loginPage = new login;
 
     loginPage->show();

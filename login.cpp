@@ -6,8 +6,8 @@
 #include <QSqlQuery>
 #include "signin.h"
 #include "confirm.h"
-
-
+#include <QFile>
+#include <QDebug>
 
 
 login::login(QWidget *parent) :
@@ -40,9 +40,8 @@ void login::on_loginBtn_clicked()
     if (q.first()&&q.value(0).toString()== pass)
     {
         confirm *w3 = new confirm;
+        w3->showMinimized();
         this->hide();
-        w3->show();
-
 
     }
     else

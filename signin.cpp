@@ -1,11 +1,14 @@
 #include "signin.h"
 #include "ui_signin.h"
-
+#include <iostream>
+#include <QFile>
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QMessageBox>
+
+
 
 signIn::signIn(QWidget *parent) :
     QMainWindow(parent),
@@ -23,7 +26,7 @@ signIn::~signIn()
 
 void signIn::on_signInBtn_clicked()
 {
-    QString pass ,pass2, username, phone ;
+    QString username,pass ,pass2, phone ;
     username = ui->usernameEdit->text();
     pass = ui->pass1->text();
     pass2 = ui-> pass2->text();
@@ -40,9 +43,9 @@ void signIn::on_signInBtn_clicked()
         QSqlQuery q;
 
             q.exec("INSERT INTO user  "
-                          "VALUES ('"+username+"', '"+ID+"', ,'"+pass+"','"+phone+"')");
+                          "VALUES ('"+username+"', '"+ID+"', ,'"+pass+"','"+phone+"',0)");
 
-
+            db.close();
 
 
     }
