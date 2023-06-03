@@ -22,6 +22,7 @@ HEADERS += \
     chatmenu.h \
     confirm.h \
     login.h \
+    main.h \
     mainwindow.h \
     signin.h
 

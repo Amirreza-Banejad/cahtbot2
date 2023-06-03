@@ -3,7 +3,8 @@
 #include <QApplication>
 #include <QDebug>
 #include "chatmenu.h"
-
+#include "main.h"
+extern QString ID;
 int main(int argc, char *argv[])
 {
 
@@ -22,14 +23,11 @@ int main(int argc, char *argv[])
         w->showMinimized();
 
     }
+
     else
     {
-        QByteArray line;
-        while (!userfile.atEnd()) {
-                line = userfile.readLine();
 
-            }
-        qDebug()<< line;
+
         chatMenu *W = new chatMenu;
         W->showMinimized();
         }

@@ -2,7 +2,7 @@
 #define CHATMENU_H
 
 #include <QMainWindow>
-
+extern QString ID;
 namespace Ui {
 class chatMenu;
 }

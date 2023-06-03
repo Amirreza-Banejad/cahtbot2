@@ -33,11 +33,6 @@
       <height>481</height>
      </rect>
     </property>
-    <item>
-     <property name="text">
-      <string>amir</string>
-     </property>
-    </item>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -46,7 +41,7 @@
      <x>0</x>
      <y>0</y>
      <width>632</width>
-     <height>25</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>
