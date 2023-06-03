@@ -18,34 +18,17 @@
 #include <QVBoxLayout>
 #include <QListWidget>
 #include <QListWidgetItem>
-
+#include <QVector>
 
  QString ID;
 //class GContact: public QWidgetListItem
 //{
 //private:
-//    QString n, id;
+
 //public:
-//    QGroupBox *contactName  = new QGroupBox ;
-
-//    QGroupBox* setGroupBox(QString message, int time,QString name)
-//    {
-//        contactName->setTitle(name);
-//         contactName->setGeometry(0,0,10,5);
-//        QLabel *Name = new QLabel(message);
-//        QString ti = QString :: number(time);
-//        QLabel *Time= new QLabel (ti);
-//         QHBoxLayout *layout = new QHBoxLayout(contactName);
-//          layout->addWidget(Name);
-//          layout->addWidget(Time);
-
-
-//            n = name ;
-//    return contactName;
-
-
-//    }
-
+//    QString name, id;
+//};
+//QVector<GContact> contact;
 chatMenu::chatMenu(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::chatMenu)
@@ -59,7 +42,7 @@ chatMenu::chatMenu(QWidget *parent) :
 
         }
     qDebug()<< line;
-
+    ID = line;
 
     QListWidget *menuchat = new QListWidget(this);
       menuchat->setGeometry(10,10,100,500);
@@ -71,16 +54,17 @@ chatMenu::chatMenu(QWidget *parent) :
     QSqlQuery q;
 
 
-     q.exec("SELECT DISTINCT reciver,message,sendingTime  FROM PV WHERE transfer = '"+ID+"' ORDER BY sendingTime DESC");
-     q.first();
-    while(q.next())
-    {
+     q.exec("SELECT DISTINCT reciver,message,sendingTime,username  FROM PV JOIN user ON user.ID = PV.reciver WHERE transfer = '"+ID+"' ORDER BY sendingTime DESC");
+    q.first();
+
+    do{
 
         QString name , message;
         int time;
+
       //  if (q.first())
     //    {
-           name = q.value(0).toString();
+           name = q.value(3).toString();
            message =  q.value(1).toString();
            time = q.value(2).toInt();
 
@@ -110,12 +94,13 @@ chatMenu::chatMenu(QWidget *parent) :
 
 
 
-    }
+    }while(q.next());
     db.close();
 
 
     ui->setupUi(this);
 }
+
 
 chatMenu::~chatMenu()
 {
