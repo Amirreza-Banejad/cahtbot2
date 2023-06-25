@@ -8,7 +8,7 @@ extern QString ID;
 int main(int argc, char *argv[])
 {
 
-    QFile userfile("D:/Uinversity/chatbot2/finalProject/QUser.txt");
+   QFile userfile("D:/Uinversity/chatbot2/finalProject/QUser.txt");
    if (!userfile.open(QIODevice::ReadOnly | QIODevice::Text))
    {
        qDebug()<< "cannot open the file";
@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
     {
         MainWindow *w = new MainWindow;
         w->showMinimized();
+
 
     }
 

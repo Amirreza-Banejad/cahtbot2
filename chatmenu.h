@@ -1,6 +1,7 @@
 #ifndef CHATMENU_H
 #define CHATMENU_H
 
+#include<QListWidgetItem>
 #include <QMainWindow>
 extern QString ID;
 namespace Ui {
@@ -17,6 +18,10 @@ public:
 
 private slots:
 
+
+
+
+    void on_menuchat_currentRowChanged(int currentRow);
 
 private:
     Ui::chatMenu *ui;
