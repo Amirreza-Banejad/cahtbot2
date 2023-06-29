@@ -21,6 +21,9 @@
 #include <QVector>
 
  QString ID;
+ QString contactID[100];
+
+
 //class GContact: public QWidgetListItem
 //{
 //private:
@@ -66,25 +69,26 @@ chatMenu::chatMenu(QWidget *parent) :
     //QListWidgetItem *item = new QListWidgetItem [2];
     QStringList inWidgetList ;
 
-     q.exec("SELECT DISTINCT reciver,message,sendingTime,username  FROM PV JOIN user ON user.ID = PV.reciver WHERE transfer = '"+ID+"' ORDER BY sendingTime DESC");
+     q.exec("SELECT DISTINCT username,reciver  FROM PV JOIN user ON user.ID = PV.reciver WHERE transfer = '"+ID+"' ORDER BY sendingTime DESC");
     q.first();
-    int i = 0 ;
+    int Ccontact = 0;
     do{
 
         QString name , message;
-        int time;
+
     //  menuchat->selectionMode(QAbstractItemView::SingleSelection);
 
       //  if (q.first())
     //    {
-           name = q.value(3).toString();
-           message =  q.value(1).toString();
-           time = q.value(2).toInt();
+           name = q.value(0).toString();
+          // message =  q.value(1).toString();
+          // time = q.value(2).toInt();
+           contactID[Ccontact] = q.value(1).toString();
 
-           QString itemText = name +"   "+ QString::number(time);
+           QString itemText = name;
            inWidgetList.append(itemText);
            qDebug()<< itemText;
-
+        Ccontact ++;
     }while(q.next());
     //db.close();
 
@@ -98,11 +102,11 @@ chatMenu::chatMenu(QWidget *parent) :
     }
 
 
-
 }
 
 chatMenu::~chatMenu()
 {
+
     delete ui;
 }
 
@@ -113,6 +117,37 @@ chatMenu::~chatMenu()
 
 void chatMenu::on_menuchat_currentRowChanged(int currentRow)
 {
-qDebug()<<currentRow;
+    ui->massageMenu->clear();
+qDebug()<<currentRow<<contactID[currentRow];
+QSqlQuery q;
+QStringList inWidget ;
+q.exec("SELECT message,sendingTime FROM PV WHERE transfer  = '"+ID+"' and reciver = '"+contactID[currentRow]+"' UNION SELECT message,sendingTime FROM PV WHERE transfer  = '"+ID+"' and reciver = '"+contactID[currentRow]+"' ORDER by sendingTime");
+if (!q.first())
+{
+    qDebug ()<< "data base not working ";
+}
+do
+{
+
+    QString message = q.value(0).toString();
+    int time = q.value(1).toInt();
+
+     QString itemText = message +"        "+ QString::number(time);
+      inWidget.append(itemText);
+
+
+
+
+} while (q.next());
+for (int i = 0 ; i < inWidget.size() ;i ++ ) {
+
+    QString itemText = inWidget.at(i);
+    QListWidgetItem *newItem = new QListWidgetItem(itemText);
+    newItem->setFlags(Qt::ItemIsSelectable| Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
+    ui->massageMenu->addItem(newItem);
+    qDebug()<<inWidget.at(i)<<i<<inWidget.size();
+
+}
+
 }
 
