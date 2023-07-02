@@ -18,26 +18,38 @@
 #include <QVBoxLayout>
 #include <QListWidget>
 #include <QListWidgetItem>
-#include <QVector>
+#include <QStandardPaths>
+#include <QTcpSocket>
+#include <QMetaType>
+#include <QAbstractSocket>
+#include <QHostAddress>
 
  QString ID;
  QString contactID[100];
+ int CC;
 
-
-//class GContact: public QWidgetListItem
-//{
-//private:
-
-//public:
-//    QString name, id;
-//};
-//QVector<GContact> contact;
 chatMenu::chatMenu(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::chatMenu)
 {
 
     ui->setupUi(this);
+
+    socket = new QTcpSocket(this);
+
+    connect(this, &chatMenu::newMessage, this, &chatMenu::displayMessage);
+    connect(socket, &QTcpSocket::readyRead, this, &chatMenu::readSocket);
+    connect(socket, &QTcpSocket::disconnected, this, &chatMenu::discardSocket);
+    //connect(socket, &QAbstractSocket::errorOccurred, this, &MainWindow::displayError);
+
+    socket->connectToHost(QHostAddress::LocalHost,8080);
+
+    if(socket->waitForConnected())
+       ui->statusbar->showMessage("Connected to Server");
+    else{
+        QMessageBox::critical(this,"QTCPClient", QString("The following error occurred: %1.").arg(socket->errorString()));
+        exit(EXIT_FAILURE);
+    }
      QFile userfile("D:/Uinversity/chatbot2/finalProject/QUser.txt");
      userfile.open(QIODevice::ReadOnly | QIODevice::Text);
     QByteArray line;
@@ -50,7 +62,7 @@ chatMenu::chatMenu(QWidget *parent) :
 
   //  QListWidget *menuchat = new QListWidget (this);
   //  menuchat = ;
-    ui->menuchat->setGeometry(10,10,100,500);
+   // ui->menuchat->setGeometry(10,10,100,500);
      // menuchat->setSelectionMode(QAbstractItemView::SingleSelection);
       //menuchat->setDragEnabled(true);
       //menuchat->viewport()->setAcceptDrops(true);
@@ -148,6 +160,173 @@ for (int i = 0 ; i < inWidget.size() ;i ++ ) {
     qDebug()<<inWidget.at(i)<<i<<inWidget.size();
 
 }
-
+CC= currentRow;
 }
+
+void chatMenu::readSocket()
+{
+    QByteArray buffer;
+
+    QDataStream socketStream(socket);
+    socketStream.setVersion(QDataStream::Qt_5_0);
+
+    socketStream.startTransaction();
+    socketStream >> buffer;
+
+    if(!socketStream.commitTransaction())
+    {
+        QString message = QString("%1 :: Waiting for more data to come..").arg(socket->socketDescriptor());
+        emit newMessage(message);
+        return;
+    }
+
+    QString header = buffer.mid(0,128);
+    QString fileType = header.split(",")[0].split(":")[1];
+
+    buffer = buffer.mid(128);
+
+    if(fileType=="attachment"){
+        QString fileName = header.split(",")[1].split(":")[1];
+        QString ext = fileName.split(".")[1];
+        QString size = header.split(",")[2].split(":")[1].split(";")[0];
+
+        if (QMessageBox::Yes == QMessageBox::question(this, "QTCPServer", QString("You are receiving an attachment from sd:%1 of size: %2 bytes, called %3. Do you want to accept it?").arg(socket->socketDescriptor()).arg(size).arg(fileName)))
+        {
+            QString filePath = QFileDialog::getSaveFileName(this, tr("Save File"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)+"/"+fileName, QString("File (*.%1)").arg(ext));
+
+            QFile file(filePath);
+            if(file.open(QIODevice::WriteOnly)){
+                file.write(buffer);
+                QString message = QString("INFO :: Attachment from sd:%1 successfully stored on disk under the path %2").arg(socket->socketDescriptor()).arg(QString(filePath));
+                emit newMessage(message);
+            }else
+                QMessageBox::critical(this,"QTCPServer", "An error occurred while trying to write the attachment.");
+        }else{
+            QString message = QString("INFO :: Attachment from sd:%1 discarded").arg(socket->socketDescriptor());
+            emit newMessage(message);
+        }
+    }else if(fileType=="message"){
+        QString message = QString("%1 :: %2").arg(socket->socketDescriptor()).arg(QString::fromStdString(buffer.toStdString()));
+        emit newMessage(message);
+    }
+}
+
+void chatMenu::discardSocket()
+{
+//    socket->deleteLater();
+//    socket=nullptr;
+
+    //QMessageBox:: information(this, "Disconnected!","DC");
+    socket->connectToHost(QHostAddress::LocalHost,8080);
+
+    if(socket->waitForConnected())
+       ui->statusbar->showMessage("Connected to Server");
+    else{
+        QMessageBox::critical(this,"QTCPClient", QString("The following error occurred: %1.").arg(socket->errorString()));
+        exit(EXIT_FAILURE);
+    }
+}
+
+void chatMenu::displayError(QAbstractSocket::SocketError socketError)
+{
+
+    switch (socketError) {
+        case QAbstractSocket::RemoteHostClosedError:
+        break;
+        case QAbstractSocket::HostNotFoundError:
+            QMessageBox::information(this, "QTCPClient", "The host was not found. Please check the host name and port settings.");
+        break;
+        case QAbstractSocket::ConnectionRefusedError:
+            QMessageBox::information(this, "QTCPClient", "The connection was refused by the peer. Make sure QTCPServer is running, and check that the host name and port settings are correct.");
+        break;
+        default:
+            QMessageBox::information(this, "QTCPClient", QString("The following error occurred: %1.").arg(socket->errorString()));
+        break;
+    }
+}
+
+
+void chatMenu::displayMessage(const QString& str)
+{
+    QListWidgetItem *newItem = new QListWidgetItem(str);
+    newItem->setFlags(Qt::ItemIsSelectable| Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
+    ui->massageMenu->addItem(newItem);
+}
+
+
+
+void chatMenu::on_sendButton_clicked()
+{
+
+    if(socket)
+    {
+        if(socket->isOpen())
+        {
+            QString str = "INSERT INTO PV (transfer,message,reciver,view) VALUES('"+ID+"','"+ui->messageText->text()+"','"+contactID[CC]+"',0)";
+            QListWidgetItem *newItem = new QListWidgetItem(str);
+            newItem->setFlags(Qt::ItemIsSelectable| Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsDragEnabled);
+            ui->massageMenu->addItem(newItem);
+            QDataStream socketStream(socket);
+            socketStream.setVersion(QDataStream::Qt_5_0);
+
+            QByteArray header;
+            header.prepend(QString("fileType:message,fileName:null,fileSize:%1;").arg(str.size()).toUtf8());
+            header.resize(128);
+
+            QByteArray byteArray = str.toUtf8();
+            byteArray.prepend(header);
+
+            socketStream << byteArray;
+
+            ui->messageText->clear();
+        }
+        else
+            QMessageBox::critical(this,"QTCPClient","Socket doesn't seem to be opened");
+    }
+    else
+        QMessageBox::critical(this,"QTCPClient","Not connected");
+}
+
+void chatMenu::on_attachmentButten_clicked()
+{
+
+    if(socket)
+    {
+        if(socket->isOpen())
+        {
+            QString filePath = QFileDialog::getOpenFileName(this, ("Select an attachment"), QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), ("File (*.json *.txt *.png *.jpg *.jpeg)"));
+
+            if(filePath.isEmpty()){
+                QMessageBox::critical(this,"QTCPClient","You haven't selected any attachment!");
+                return;
+            }
+
+            QFile m_file(filePath);
+            if(m_file.open(QIODevice::ReadOnly)){
+
+                QFileInfo fileInfo(m_file.fileName());
+                QString fileName(fileInfo.fileName());
+
+                QDataStream socketStream(socket);
+                socketStream.setVersion(QDataStream::Qt_5_0);
+
+                QByteArray header;
+                header.prepend(QString("fileType:attachment,fileName:%1,fileSize:%2;").arg(fileName).arg(m_file.size()).toUtf8());
+                header.resize(128);
+
+                QByteArray byteArray = m_file.readAll();
+                byteArray.prepend(header);
+
+                socketStream.setVersion(QDataStream::Qt_5_0);
+                socketStream << byteArray;
+            }else
+                QMessageBox::critical(this,"QTCPClient","Attachment is not readable!");
+        }
+        else
+            QMessageBox::critical(this,"QTCPClient","Socket doesn't seem to be opened");
+    }
+    else
+        QMessageBox::critical(this,"QTCPClient","Not connected");
+}
+
 
